@@ -1,0 +1,49 @@
+name: 'Infra CI/CD'
+
+on:
+  push
+
+env:
+  RESOURCE_GROUP_DEV: BCSAI2024-DEVOPS-STUDENTS-A-DEV
+  SUBSCRIPTION_ID_DEV: e0b9cada-61bc-4b5a-bd7a-52c606726b3b
+  USER_ALIAS: exam_extra
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      # Exercise I
+      # GitHub action: Write step to checkout code
+      - uses: actions/checkout@main
+
+      # Exercise I
+      # GitHub action: Write step to linter main.bicep
+      - name: Run Bicep linter
+        run: az bicep build --file ./infra/main.bicep
+  
+  
+  deploy:
+    runs-on: ubuntu-latest
+    needs: build
+    environment:
+      name: 'Development'
+
+    steps:
+      # Exercise II
+      # GitHub action: Write step to checkout code
+      - uses: actions/checkout@main
+    
+      # Exercise II
+      # GitHub action: Write step to login in to Azure. You can use the repository secret AZURE_CREDENTIALS
+      - uses: azure/login@v2
+        with:
+          creds: ${{ secrets.AZURE_CREDENTIALS }}
+
+      - name: deploy
+        uses: azure/arm-deploy@v2
+        with:
+            subscriptionId: ${{ env.SUBSCRIPTION_ID_DEV }}
+            resourceGroupName: ${{ env.RESOURCE_GROUP_DEV }}
+            template: ./infra/main.bicep
+            parameters: ./infra/parameters/main.parameters.json
+            deploymentName: ${{ env.USER_ALIAS }}
